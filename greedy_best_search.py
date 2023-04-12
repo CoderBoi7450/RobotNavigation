@@ -24,7 +24,7 @@ class GBS:
         success = False
         while self.frontier:
             # self.frontier.sort(reverse=True,key=self.getHeuristicValue)
-            print([self.getHeuristicValue(state) for state in self.frontier])
+            # print([self.getHeuristicValue(state) for state in self.frontier])
             state = self.frontier.pop(0)
             self.traversedLocation.append(state.location)
             if self.maze.isGoal(state.location):

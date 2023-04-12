@@ -1,6 +1,4 @@
-from queue import Queue
 
-from maze import Maze
 from state import State
 import bisect
 
@@ -14,7 +12,7 @@ class ASS:
     def getHeuristicValue(self, state):
         location = state.location
         values = [abs(location[0] - goal[0]) + abs(location[1] - goal[1]) for goal in self.maze.goals]
-        return min(values) + len(state.self.parents)
+        return min(values) + len(state.parents)
 
     def search(self):
         initialState = State(location=self.maze.initialLocation, parents=[], direction="")
@@ -24,7 +22,7 @@ class ASS:
         success = False
         while self.frontier:
             # self.frontier.sort(reverse=True,key=self.getHeuristicValue)
-            print([self.getHeuristicValue(state) for state in self.frontier])
+            # print([self.getHeuristicValue(state) for state in self.frontier])
             state = self.frontier.pop(0)
             self.traversedLocation.append(state.location)
             if self.maze.isGoal(state.location):
