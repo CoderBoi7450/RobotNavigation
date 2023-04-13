@@ -173,10 +173,10 @@ class GUI(Tk):
             lineX = 0
             lineY = 0
             for i in range(self.row + 1):
-                self.mazeCanvas.create_line(0, lineY, self.squareSize * self.column, lineY, fill="black")
+                self.mazeCanvas.create_line(0, lineY, self.squareSize * self.column, lineY, fill="black",width=1)
                 lineY += self.squareSize
             for j in range(self.column + 1):
-                self.mazeCanvas.create_line(lineX, 0, lineX, self.squareSize * self.row, fill="black")
+                self.mazeCanvas.create_line(lineX, 0, lineX, self.squareSize * self.row, fill="black",width=1)
                 lineX += self.squareSize
             if self.startLocation:
                 x, y = self.startLocation[0] * self.squareSize+1, self.startLocation[1] * self.squareSize +1
