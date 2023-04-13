@@ -1,20 +1,39 @@
 from tkinter import *
 
-class TestFrame(Frame):
-    def __init__(self, parent):
-        super().__init__(master=parent, bg="black")
-        test_label = Label(self,text="test",fg = "white",bg = "yellow",font = ('calibre', 20))
-        test_label.place(x=0,y=0)
+
+class HomePage(Frame):
+    def __init__(self, parent, controller,width,height):
+        super().__init__(master=parent,width=width,height=height)
+        self.controller = controller
+        prompt = Label(self, text="Search Algorithm Visualizer", fg='black', bg='white')
+        prompt.place(x=0, y=0)
+        create_maze_btn = Button(self, text='Create Maze', command=self.create_maze, bg='white', fg='black',
+                                 highlightbackground='white')
+        create_maze_btn.place(x=0, y=40)
+
+    def create_maze(self):
+        self.controller.switch_frame(SelectWidthAndHeightFrame)
+
+
+class SelectWidthAndHeightFrame(Frame):
+    def __init__(self, parent, controller,width,height):
+        lb1 = Label(parent, text="Enter Name", width=10, font=("arial", 12))
+        lb1.place(x=20, y=120)
+        en1 = Entry(parent)
+        en1.place(x=100, y=100)
+
 
 class GUI(Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        windowWidth = 500
-        windowHeight = 500
-        self.geometry(f"{windowWidth}x{windowHeight}")
-        self.configure(bg='white')
-        self.testFrame = TestFrame(self)
-        self.testFrame.place(x=0,y=0,width=200,height = 200)
+        self.geometry("1280x640")
+        # self.configure(bg='white')
+        self.switch_frame(HomePage)
 
-gui = GUI();
+    def switch_frame(self, Frame):
+        frame = Frame(self, self,width=1280,height=640)
+        frame.place(x=0, y=0)
+
+
+gui = GUI()
 gui.mainloop()
