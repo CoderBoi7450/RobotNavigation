@@ -1,14 +1,14 @@
 from tkinter import *
 from program import Program
-
+from tkinter.filedialog import asksaveasfilename,askopenfilename
 
 class SearchPage(Frame):
     def __init__(self, parent, controller):
         super().__init__(master=parent, bg="white")
         self.controller = controller
         Label(self, text="Breadth First Search Visualizer", fg='black', bg='white').place(x=0, y=0)
-        Button(self, text='Start search', command=self.start_search, bg='white', fg='black',
-               highlightbackground='white').place(x=0., y=40)
+        Button(self, text='Homepage', command=self.go_homepage, bg='white', fg='black',
+               highlightbackground='white').place(x=50, y=40)
         self.algorithm = StringVar()
         Radiobutton(parent,
                     text="Breadth-First Search",
@@ -41,17 +41,25 @@ class SearchPage(Frame):
                     variable=self.algorithm,
                     command=self.change_algorithm,
                     value="ida").place(x=1000, y=80)
-        self.controller.import_maze()
+        # self.controller.import_maze()
         self.controller.draw_maze()
 
-    def change_algorithm(self):
-        print(self.algorithm.get())
 
-    def start_search(self):
-        search = Program()
-        self.controller.paths = None
-        self.controller.traversedLocation = None
-        for result in search.solve("maze.txt"):
+    def go_homepage(self):
+        # self.controller.clear_maze()
+        self.controller.switch_frame(HomePage)
+
+    def change_algorithm(self):
+        self.start_search(self.algorithm.get())
+
+    def start_search(self, algorithm):
+
+        search = Program(algorithm)
+        self.controller.paths = []
+        self.controller.traversedLocation = []
+        self.controller.current = None
+        self.controller.frontier = []
+        for result in search.solve(self.controller.importedfilename):
             self.controller.traversedLocation = result["traversedList"]
             if result["success"]:
                 self.controller.paths = result["paths"]
@@ -66,37 +74,51 @@ class SearchPage(Frame):
 class HomePage(Frame):
     def __init__(self, parent, controller):
         super().__init__(master=parent, bg="white")
+
         self.controller = controller
+        self.controller.clear_maze()
+        self.controller.frontier = None
+        self.controller.traversedLocation = []
+        self.controller.current = None
+        self.controller.paths = []
         prompt = Label(self, text="Search Algorithm Visualizer", fg='black', bg='white')
         prompt.place(x=0, y=0)
         create_maze_btn = Button(self, text='Create Maze', command=self.create_maze, bg='white', fg='black',
                                  highlightbackground='white')
         import_btn = Button(self, text='Import Maze', command=self.import_maze, bg='white', fg='black',
                             highlightbackground='white')
-        search_btn = Button(self, text='Search', command=self.search, bg='white', fg='black',
-                            highlightbackground='white')
+
         create_maze_btn.place(x=0, y=40)
         import_btn.place(x=150, y=40)
-        search_btn.place(x=300, y=40)
+
 
     def create_maze(self):
-        self.controller.switch_frame(SelectWidthAndHeightFrame)
+        self.controller.switch_frame(CreateMazePage)
 
     def import_maze(self):
         self.controller.switch_frame(ImportPage)
 
-    def search(self):
-        self.controller.switch_frame(SearchPage)
+
 
 
 class ImportPage(Frame):
     def __init__(self, parent, controller):
         super().__init__(master=parent, bg="white")
         self.controller = controller
-        prompt = Label(self, text="Imported from maze.txt file", fg='black', bg='white')
-        prompt.place(x=0, y=0)
+        Label(self, text="Maze Imported", fg='black', bg='white').place(x=0, y=0)
+        Button(self, text='Edit', command=self.edit, bg='white', fg='black',
+               highlightbackground='white').place(x = 40, y = 40)
+        Button(self, text='Search', command=self.search, bg='white', fg='black',
+                            highlightbackground='white').place(x=100, y=40)
         self.controller.import_maze()
         self.controller.draw_maze()
+
+
+    def edit(self):
+        self.controller.switch_frame(SelectStartPointFrame)
+
+    def search(self):
+        self.controller.switch_frame(SearchPage)
 
 
 class SelectStartPointFrame(Frame):
@@ -140,6 +162,7 @@ class SelectGoalsFrame(Frame):
             mouse_x, mouse_y = event.x, event.y
             row = mouse_y // self.controller.squareSize
             column = mouse_x // self.controller.squareSize
+
             if (column, row) in self.controller.goals:
                 self.controller.goals.remove((column, row))
             elif (column, row) != self.controller.startLocation:
@@ -153,15 +176,14 @@ class SelectWallFrame(Frame):
         super().__init__(master=parent, bg="white")
         controller.bind("<ButtonRelease-1>", self.select_walls)
         self.controller = controller
-        prompt = Label(self, text="Select Walls", fg='black', bg='white')
-        prompt.place(x=0, y=0)
-        sub_btn = Button(self, text='Export', command=self.confirm_walls, bg='white',
-                         fg='black',
-                         highlightbackground='white')
-        sub_btn.place(x=0, y=40)
+        Label(self, text="Select Walls", fg='black', bg='white').place(x=0, y=0)
+        Button(self, text='Save maze', command=self.confirm_walls, bg='white',
+               fg='black',
+               highlightbackground='white').place(x=0, y=40)
 
     def confirm_walls(self):
         self.controller.export()
+        self.controller.switch_frame(ExportConfirm)
 
     def select_walls(self, event):
         if str(event.widget) == ".maze":
@@ -175,13 +197,33 @@ class SelectWallFrame(Frame):
             else:
                 print("Point already occupied")
 
+class ExportConfirm(Frame):
+    def __init__(self, parent, controller):
+        super().__init__(master=parent, bg="white")
+        self.controller = controller
+        Label(self, text="Succesfully saved", fg='black', bg='white').place(x=0, y=0)
+        Button(self, text='Homepage', command=self.go_homepage, bg='white',
+               fg='black',
+               highlightbackground='white').place(x=0, y=40)
 
-class SelectWidthAndHeightFrame(Frame):
+    def go_homepage(self):
+        self.controller.clear_maze()
+        self.controller.switch_frame(HomePage)
+
+
+class CreateMazePage(Frame):
     def __init__(self, parent, controller):
         super().__init__(master=parent, bg="white")
 
         # self.mazeCanvas = None
         self.controller = controller
+        self.controller.paths = []
+        self.controller.startLocation = None
+        self.controller.frontier = []
+        self.controller.goals = []
+        self.controller.current = None
+        self.controller.walls = []
+        self.controller.traversedLocation = []
         self.row_var = IntVar()
         self.column_var = IntVar()
         row_label = Label(parent, text="Row", fg='black', bg='white')
@@ -208,16 +250,16 @@ class SelectWidthAndHeightFrame(Frame):
 class GUI(Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.paths = None
+        self.importedfilename = None
         self.mazeCanvas = None
+        self.paths = []
         self.startLocation = None
         self.frontier = []
         self.goals = []
         self.current = None
-
         self.walls = []
         self.traversedLocation = []
-        self.currentFrame = ""
+        self.drawing = None
         self.windowWidth = 1280
         self.windowHeight = 1280
         self.squareSize = 30
@@ -230,11 +272,11 @@ class GUI(Tk):
 
     def switch_frame(self, Frame):
         self.unbind("<ButtonRelease-1>")
-        self.currentFrame = Frame.__name__
         frame = Frame(self, self)
         frame.place(x=0, y=0, width=self.windowWidth, height=150)
 
     def draw_maze(self):
+        self.clear_maze()
         if self.row and self.column:
             self.mazeCanvas = Canvas(self, bg='white', width=self.squareSize * self.column + 1,
                                      height=self.squareSize * self.row + 1,
@@ -287,10 +329,19 @@ class GUI(Tk):
             if self.startLocation:
                 x, y = self.startLocation[0] * self.squareSize + 1, self.startLocation[1] * self.squareSize + 1
                 self.mazeCanvas.create_rectangle(x, y, x + self.squareSize - 2, y + self.squareSize - 2, fill="red")
-            self.after(100, self.draw_maze)
+            self.drawing = self.after(100, self.draw_maze)
+
+    def clear_maze(self):
+        if self.mazeCanvas:
+            if self.drawing is not None:
+                print("here")
+                self.after_cancel(self.drawing)
+                self.drawing = None
+            self.mazeCanvas.delete("all")
 
     def export(self):
-        with open("maze.txt", "w") as file:
+        with open(asksaveasfilename(initialfile='maze.txt',
+                          defaultextension=".txt", filetypes=[("Text Documents", "*.txt")]),"w") as file:
             file.write(f"[{self.row},{self.column}]\n")
             file.write(f"({self.startLocation[0]},{self.startLocation[1]})\n")
             for index in range(len(self.goals)):
@@ -306,7 +357,8 @@ class GUI(Tk):
                     file.write("\n")
 
     def import_maze(self):
-        with open("maze.txt", "r") as file:
+        self.importedfilename = askopenfilename()
+        with open(self.importedfilename, "r") as file:
             mazeSize = file.readline().strip('][ \n').split(',')
             mazeSize = [int(i) for i in mazeSize]
             self.row, self.column = mazeSize[0], mazeSize[1]
@@ -317,7 +369,7 @@ class GUI(Tk):
             goalStates = [[int(x) for x in state] for state in goalStates]
             self.goals = []
             for goal in goalStates:
-                self.goals.append(goal)
+                self.goals.append((goal[0],goal[1]))
             walls = []
             for line in file.readlines():
                 if not line.isspace():

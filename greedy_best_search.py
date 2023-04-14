@@ -31,7 +31,7 @@ class GBS:
                 print("Solved")
                 success = True
                 break
-            yield {"traversedList": self.traversedLocation, "success": False}
+            yield {"traversedList": self.traversedLocation, "success": False, "frontier": [state.location for state in self.frontier]}
             self.expand(self.maze.getNextMoves(state), state)
 
         if success:

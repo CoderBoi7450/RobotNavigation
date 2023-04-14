@@ -7,7 +7,8 @@ from a_star_search import ASS
 from bidirectional_search import BDS
 from iterative_deepening_a_star import IDA
 class Program:
-
+    def __init__(self,algorithm):
+        self.algorithm = algorithm
     def readMaze(self,filename):
         file = open(filename,'r')
         mazeSize = file.readline().strip('][ \n').split(',') 
@@ -32,34 +33,20 @@ class Program:
     def solve(self,filename):
         mazeInfo = self.readMaze(filename)
         maze = Maze(*mazeInfo.values()) # maze or self.maze
-        # print("Breadth-first search")
-        # bfs = BFS(maze)
-        # result = bfs.search()
-        #
-        # print('*'*20)
+        if self.algorithm == "bfs":
+            search_algorithm = BFS(maze)
+        elif self.algorithm == "dfs":
+            search_algorithm = DFS(maze)
+        elif self.algorithm == "gbfs":
+            search_algorithm = GBS(maze)
+        elif self.algorithm == "ass":
+            search_algorithm = ASS(maze)
+        elif self.algorithm == "bds":
+            search_algorithm = BDS(maze)
+        elif self.algorithm == "ida":
+            search_algorithm = IDA(maze)
+        result = search_algorithm.search()
 
-        print("Depth-first search")
-        dfs = DFS(maze)
-        result = dfs.search()
-        print('*' * 20)
-
-        # print("Greedy-best search")
-        # gbs = GBS(maze)
-        # result = gbs.search()
-        # print('*' * 20)
-
-        # print("A-Star search")
-        # ass = ASS(maze)
-        # result = ass.search()
-        # print('*' * 20)
-        #
-        # print("Bidirectional search")
-        # bds = BDS(maze)
-        # result = bds.search()
-        # print('*'*20)
-        # print("Iterative deepening A*")
-        # ida = IDA(maze)
-        # result = ida.search()
         for _ in result:
             yield _
 
