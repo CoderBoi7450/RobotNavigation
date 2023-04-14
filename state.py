@@ -1,5 +1,5 @@
 class State:
-    def __init__(self, location, parents, direction):
+    def __init__(self, location, parents = None, direction = None):
         self.location = location
         self.parents = parents
         self.direction = direction

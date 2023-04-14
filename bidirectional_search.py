@@ -29,6 +29,21 @@ class BDS:
         else:
             return ""
 
+    def get_path(self,intersecting_location):
+        for state in self.src_visited:
+            if intersecting_location == state.location:
+                src_state = state
+        for state in self.des_visited:
+            if intersecting_location == state.location:
+                des_state = state;
+        path = []
+        for parent in src_state.parents:
+            path.append(parent.location)
+        path.append(intersecting_location)
+        for parent in des_state.parents:
+            path.append(parent.location)
+        return path
+
     def displaySolution(self, intersecting_location):
         src_state = None
         for state in self.src_visited:
@@ -41,7 +56,7 @@ class BDS:
         des_state = None
         for state in self.des_visited:
             if intersecting_location == state.location:
-                des_state = state;
+                des_state = state
         print(self.reflect_des_direction(des_state.direction))
         for parent in reversed(des_state.parents):
             print(self.reflect_des_direction(parent.direction))
@@ -63,12 +78,16 @@ class BDS:
                 print(intersecting_location)
                 print("Solved")
                 break
+            yield {"traversedList": [state.location for state in self.src_visited] + [state.location for state in self.des_visited],"success" : False}
             self.expand(self.maze.getNextMoves(src_state), src_state, "forward")
             self.expand(self.maze.getNextMoves(des_state), des_state, "backward")
 
         if intersecting_location != -1:
+            yield {"traversedList": [state.location for state in self.src_visited] + [state.location for state in self.des_visited], "success": True,
+                   "paths": self.get_path(intersecting_location)}
             self.displaySolution(intersecting_location)
         else:
+            yield {"traveresedList" : [state.location for state in self.src_visited] + [state.location for state in self.des_visited], "success": False}
             print("No solution")
 
     def check_location_visited(self, location, visited_list):
@@ -83,9 +102,9 @@ class BDS:
         parents.append(parent)
         if direction == "forward":
             for direction in moves:
-                if not self.check_location_visited(moves[direction], self.src_visited):
+                if not self.check_location_visited(moves[direction], self.src_visited + list(self.src_frontier.queue)):
                     self.src_frontier.put(State(moves[direction], parents, direction))
         elif direction == "backward":
             for direction in moves:
-                if not self.check_location_visited(moves[direction], self.des_visited):
+                if not self.check_location_visited(moves[direction], self.des_visited + list(self.des_frontier.queue)):
                     self.des_frontier.put(State(moves[direction], parents, direction))

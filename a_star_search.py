@@ -29,12 +29,16 @@ class ASS:
                 print("Solved")
                 success = True
                 break
+            yield {"traversedList": self.traversedLocation, "success": False}
             self.expand(self.maze.getNextMoves(state), state)
 
         if success:
             self.displaySolution(state)
+            yield {"traversedList": self.traversedLocation, "success": True,
+                   "paths": [parent.location for parent in state.parents]}
         else:
             print("No solution")
+            yield {"traversedList": self.traversedLocation, "success": False}
 
     def expand(self, moves, parent):
 
@@ -42,7 +46,7 @@ class ASS:
         parents.append(parent)
 
         for direction in moves.keys():
-            if moves[direction] not in self.traversedLocation:
+            if moves[direction] not in self.traversedLocation and State(moves[direction]) not in self.frontier:
                 bisect.insort_right(a=self.frontier, x=State(moves[direction], parents, direction),
                                     key=self.getHeuristicValue) #only works in python 3.11
 

@@ -29,17 +29,19 @@ class IDA:
                     print("Solved")
                     success = True
                     break
+                yield {"traversedList": self.traversedLocation, "success": False, "frontier": [state.location for state in self.frontier], "current":state.location}
                 if self.getHeuristicValue(state) > threshold:
                     pruned_list.append(state)
                     continue
-
                 self.expand(self.maze.getNextMoves(state), state)
 
             if success:
                 self.displaySolution(state)
+                yield {"traversedList": self.traversedLocation, "success": True, "paths": [parent.location for parent in state.parents]}
                 break
             elif not pruned_list:
                 print("No solution")
+                yield {"traversedList": self.traversedLocation, "success": False}
                 break
             else:
                 threshold = self.getHeuristicValue(pruned_list[0])
@@ -52,8 +54,8 @@ class IDA:
         parents = parent.parents.copy()
         parents.append(parent)
 
-        for direction in moves.keys():
-            if moves[direction] not in self.traversedLocation:
+        for direction in reversed(list(moves.keys())): #reversed or not
+            if moves[direction] not in self.traversedLocation and State(moves[direction]) not in self.frontier: # co nen check trong self.frontier k
                 self.frontier.append(State(moves[direction], parents, direction))
 
     def displaySolution(self, state):

@@ -31,12 +31,16 @@ class GBS:
                 print("Solved")
                 success = True
                 break
+            yield {"traversedList": self.traversedLocation, "success": False}
             self.expand(self.maze.getNextMoves(state), state)
 
         if success:
             self.displaySolution(state)
+            yield {"traversedList": self.traversedLocation, "success": True,
+                   "paths": [parent.location for parent in state.parents]}
         else:
             print("No solution")
+            yield {"traversedList": self.traversedLocation, "success": False}
 
     def expand(self, moves, parent):
 

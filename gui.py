@@ -1,4 +1,66 @@
 from tkinter import *
+from program import Program
+
+
+class SearchPage(Frame):
+    def __init__(self, parent, controller):
+        super().__init__(master=parent, bg="white")
+        self.controller = controller
+        Label(self, text="Breadth First Search Visualizer", fg='black', bg='white').place(x=0, y=0)
+        Button(self, text='Start search', command=self.start_search, bg='white', fg='black',
+               highlightbackground='white').place(x=0., y=40)
+        self.algorithm = StringVar()
+        Radiobutton(parent,
+                    text="Breadth-First Search",
+                    variable=self.algorithm,
+                    command=self.change_algorithm,
+                    value="bfs").place(x=40, y=80)
+
+        Radiobutton(parent,
+                    text="Depth-First Search",
+                    variable=self.algorithm,
+                    command=self.change_algorithm,
+                    value="dfs").place(x=200, y=80)
+        Radiobutton(parent,
+                    text="Greedy Best-First Search",
+                    variable=self.algorithm,
+                    command=self.change_algorithm,
+                    value="gbfs").place(x=360, y=80)
+        Radiobutton(parent,
+                    text="A* Search",
+                    variable=self.algorithm,
+                    command=self.change_algorithm,
+                    value="ass").place(x=560, y=80)
+        Radiobutton(parent,
+                    text="Bidirectional Search (Custom Uninformed Search)",
+                    variable=self.algorithm,
+                    command=self.change_algorithm,
+                    value="bds").place(x=660, y=80)
+        Radiobutton(parent,
+                    text="IDA Search (Custom Informed Search)",
+                    variable=self.algorithm,
+                    command=self.change_algorithm,
+                    value="ida").place(x=1000, y=80)
+        self.controller.import_maze()
+        self.controller.draw_maze()
+
+    def change_algorithm(self):
+        print(self.algorithm.get())
+
+    def start_search(self):
+        search = Program()
+        self.controller.paths = None
+        self.controller.traversedLocation = None
+        for result in search.solve("maze.txt"):
+            self.controller.traversedLocation = result["traversedList"]
+            if result["success"]:
+                self.controller.paths = result["paths"]
+            if result.get("frontier"):
+                self.controller.frontier = result["frontier"]
+            if result.get("current"):
+                self.controller.current = result["current"]
+            print(self.controller.traversedLocation)
+            self.controller.tksleep(0.01)
 
 
 class HomePage(Frame):
@@ -11,14 +73,20 @@ class HomePage(Frame):
                                  highlightbackground='white')
         import_btn = Button(self, text='Import Maze', command=self.import_maze, bg='white', fg='black',
                             highlightbackground='white')
+        search_btn = Button(self, text='Search', command=self.search, bg='white', fg='black',
+                            highlightbackground='white')
         create_maze_btn.place(x=0, y=40)
         import_btn.place(x=150, y=40)
+        search_btn.place(x=300, y=40)
 
     def create_maze(self):
         self.controller.switch_frame(SelectWidthAndHeightFrame)
 
     def import_maze(self):
         self.controller.switch_frame(ImportPage)
+
+    def search(self):
+        self.controller.switch_frame(SearchPage)
 
 
 class ImportPage(Frame):
@@ -140,13 +208,18 @@ class SelectWidthAndHeightFrame(Frame):
 class GUI(Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.paths = None
         self.mazeCanvas = None
         self.startLocation = None
+        self.frontier = []
         self.goals = []
+        self.current = None
+
         self.walls = []
+        self.traversedLocation = []
         self.currentFrame = ""
         self.windowWidth = 1280
-        self.windowHeight = 640
+        self.windowHeight = 1280
         self.squareSize = 30
         self.geometry(f"{self.windowWidth}x{self.windowHeight}")
         self.configure(bg='white')
@@ -162,7 +235,6 @@ class GUI(Tk):
         frame.place(x=0, y=0, width=self.windowWidth, height=150)
 
     def draw_maze(self):
-
         if self.row and self.column:
             self.mazeCanvas = Canvas(self, bg='white', width=self.squareSize * self.column + 1,
                                      height=self.squareSize * self.row + 1,
@@ -173,22 +245,48 @@ class GUI(Tk):
             lineX = 0
             lineY = 0
             for i in range(self.row + 1):
-                self.mazeCanvas.create_line(0, lineY, self.squareSize * self.column, lineY, fill="black",width=1)
+                self.mazeCanvas.create_line(0, lineY, self.squareSize * self.column, lineY, fill="black", width=1)
                 lineY += self.squareSize
             for j in range(self.column + 1):
-                self.mazeCanvas.create_line(lineX, 0, lineX, self.squareSize * self.row, fill="black",width=1)
+                self.mazeCanvas.create_line(lineX, 0, lineX, self.squareSize * self.row, fill="black", width=1)
                 lineX += self.squareSize
-            if self.startLocation:
-                x, y = self.startLocation[0] * self.squareSize+1, self.startLocation[1] * self.squareSize +1
-                self.mazeCanvas.create_rectangle(x, y, x + self.squareSize - 2, y + self.squareSize - 2, fill="red")
+
+            if self.frontier:
+                for location in self.frontier:
+                    x, y = location[0] * self.squareSize + 1, location[1] * self.squareSize + 1
+                    self.mazeCanvas.create_rectangle(x, y, x + self.squareSize - 2, y + self.squareSize - 2,
+                                                     fill="#ADD8E6")
+
+            if self.traversedLocation:
+                for location in self.traversedLocation:
+                    x, y = location[0] * self.squareSize + 1, location[1] * self.squareSize + 1
+                    self.mazeCanvas.create_rectangle(x, y, x + self.squareSize - 2, y + self.squareSize - 2,
+                                                     fill="#241571")
+
+            if self.current:
+                x, y = self.current[0] * self.squareSize + 1, self.current[1] * self.squareSize + 1
+                self.mazeCanvas.create_rectangle(x, y, x + self.squareSize - 2, y + self.squareSize - 2,
+                                                 fill="#F58025")
+            if self.paths:
+                for path in self.paths:
+                    x, y = path[0] * self.squareSize + 1, path[1] * self.squareSize + 1
+                    self.mazeCanvas.create_rectangle(x, y, x + self.squareSize - 2, y + self.squareSize - 2,
+                                                     fill="yellow")
             if self.goals:
                 for goal in self.goals:
                     x, y = goal[0] * self.squareSize + 1, goal[1] * self.squareSize + 1
-                    self.mazeCanvas.create_rectangle(x, y, x + self.squareSize -2, y + self.squareSize -2, fill="green")
+                    self.mazeCanvas.create_rectangle(x, y, x + self.squareSize - 2, y + self.squareSize - 2,
+                                                     fill="green")
+
             if self.walls:
                 for wall in self.walls:
-                    x, y = wall[0] * self.squareSize + 1, wall[1] * self.squareSize +1
-                    self.mazeCanvas.create_rectangle(x, y, x + self.squareSize -2 , y + self.squareSize - 2, fill="black")
+                    x, y = wall[0] * self.squareSize + 1, wall[1] * self.squareSize + 1
+                    self.mazeCanvas.create_rectangle(x, y, x + self.squareSize - 2, y + self.squareSize - 2,
+                                                     fill="black")
+
+            if self.startLocation:
+                x, y = self.startLocation[0] * self.squareSize + 1, self.startLocation[1] * self.squareSize + 1
+                self.mazeCanvas.create_rectangle(x, y, x + self.squareSize - 2, y + self.squareSize - 2, fill="red")
             self.after(100, self.draw_maze)
 
     def export(self):
@@ -208,7 +306,7 @@ class GUI(Tk):
                     file.write("\n")
 
     def import_maze(self):
-        with open("maze.txt","r") as file:
+        with open("maze.txt", "r") as file:
             mazeSize = file.readline().strip('][ \n').split(',')
             mazeSize = [int(i) for i in mazeSize]
             self.row, self.column = mazeSize[0], mazeSize[1]
@@ -231,6 +329,17 @@ class GUI(Tk):
             for wall in walls:
                 self.walls.append(wall)
 
+
+def tksleep(self, time: float) -> None:
+    """
+    Emulating `time.sleep(seconds)`
+    Created by TheLizzard, inspired by Thingamabobs
+    """
+    self.after(int(time * 1000), self.quit)
+    self.mainloop()
+
+
+Misc.tksleep = tksleep
 
 gui = GUI()
 gui.mainloop()

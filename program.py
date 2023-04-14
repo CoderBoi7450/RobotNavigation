@@ -32,36 +32,39 @@ class Program:
     def solve(self,filename):
         mazeInfo = self.readMaze(filename)
         maze = Maze(*mazeInfo.values()) # maze or self.maze
-        print("Breadth-first search")
-        bfs = BFS(maze)
-        bfs.search()
-        print('*'*20)
+        # print("Breadth-first search")
+        # bfs = BFS(maze)
+        # result = bfs.search()
+        #
+        # print('*'*20)
 
         print("Depth-first search")
         dfs = DFS(maze)
-        dfs.search()
+        result = dfs.search()
         print('*' * 20)
 
-        print("Greedy-best search")
-        gbs = GBS(maze)
-        gbs.search()
-        print('*' * 20)
+        # print("Greedy-best search")
+        # gbs = GBS(maze)
+        # result = gbs.search()
+        # print('*' * 20)
 
-        print("A-Star search")
-        ass = ASS(maze)
-        ass.search()
-        print('*' * 20)
-
-        print("Bidirectional search")
-        bds = BDS(maze)
-        bds.search()
-        print('*'*20)
-        print("Iterative deepening A*")
-        ida = IDA(maze)
-        ida.search()
-        
+        # print("A-Star search")
+        # ass = ASS(maze)
+        # result = ass.search()
+        # print('*' * 20)
+        #
+        # print("Bidirectional search")
+        # bds = BDS(maze)
+        # result = bds.search()
+        # print('*'*20)
+        # print("Iterative deepening A*")
+        # ida = IDA(maze)
+        # result = ida.search()
+        for _ in result:
+            yield _
 
 
 if __name__ == "__main__":
     program = Program()
-    program.solve("maze2.txt")
+    for x in program.solve("maze.txt"):
+        pass
