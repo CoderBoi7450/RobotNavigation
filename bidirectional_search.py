@@ -87,7 +87,7 @@ class BDS:
                    "paths": self.get_path(intersecting_location)}
             self.displaySolution(intersecting_location)
         else:
-            yield {"traveresedList" : [state.location for state in self.src_visited] + [state.location for state in self.des_visited], "success": False}
+            yield {"traversedList" : [state.location for state in self.src_visited] + [state.location for state in self.des_visited], "success": False}
             print("No solution")
 
     def check_location_visited(self, location, visited_list):
